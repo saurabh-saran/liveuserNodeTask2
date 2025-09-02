@@ -2,17 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>User Registration</title>
+  <title>User Registration & Login</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .hidden { display: none; }
+  </style>
 </head>
 <body class="bg-light">
 
 <div class="container mt-5">
   <div class="card p-4 shadow">
-    <h2 class="text-center mb-4">📝 User Registration</h2>
+    
+    <!-- Register Form -->
     <form id="registerForm">
-
+      <h2 class="text-center mb-4">📝 User Registration</h2>
+      
       <div class="mb-3">
         <label>Name</label>
         <input type="text" id="name" class="form-control" required>
@@ -59,48 +64,113 @@
       </div>
 
       <button type="submit" class="btn btn-success w-100">Register</button>
+
+      <div class="text-center mt-3">
+        <span>Already have an account? 
+          <a href="#" onclick="toggleForms()">Login here</a>
+        </span>
+      </div>
     </form>
 
+    <!-- Login Form -->
+    <form id="loginForm" class="hidden">
+      <h2 class="text-center mb-4">🔐 User Login</h2>
+
+      <div class="mb-3">
+        <label>User ID</label>
+        <input type="text" id="loginUserId" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label>Password</label>
+        <input type="password" id="loginPassword" class="form-control" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+
+      <div class="text-center mt-3">
+        <span>Don’t have an account? 
+          <a href="#" onclick="toggleForms()">Register here</a>
+        </span>
+      </div>
+    </form>
+
+    <!-- Live Users Button -->
     <div class="text-center mt-3">
-      <a href="liveusers.html" class="btn btn-primary">👉 View Live Registered Users</a>
+      <a href="liveusers.html" class="btn btn-dark">👉 View Live Registered Users</a>
     </div>
   </div>
 </div>
 
 <script>
-document.getElementById("registerForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const userData = {
-    name: document.getElementById("name").value,
-    username: document.getElementById("username").value,
-    email: document.getElementById("email").value,
-    mobile: document.getElementById("mobile").value,
-    city: document.getElementById("city").value,
-    state: document.getElementById("state").value,
-    country: document.getElementById("country").value,
-    userId: document.getElementById("userId").value,
-    password: document.getElementById("password").value
-  };
-
-  try {
-    const res = await fetch("/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData)
-    });
-
-    if (res.ok) {
-      Swal.fire("✅ Success", "Registration Successful!", "success");
-      document.getElementById("registerForm").reset();
-    } else {
-      const msg = await res.text();
-      Swal.fire("❌ Failed", msg, "error");
-    }
-  } catch (err) {
-    Swal.fire("⚠️ Error", "Something went wrong!", "warning");
+  function toggleForms() {
+    document.getElementById("registerForm").classList.toggle("hidden");
+    document.getElementById("loginForm").classList.toggle("hidden");
   }
-});
+
+  // Register Submit
+  document.getElementById("registerForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const userData = {
+      name: document.getElementById("name").value,
+      username: document.getElementById("username").value,
+      email: document.getElementById("email").value,
+      mobile: document.getElementById("mobile").value,
+      city: document.getElementById("city").value,
+      state: document.getElementById("state").value,
+      country: document.getElementById("country").value,
+      userId: document.getElementById("userId").value,
+      password: document.getElementById("password").value
+    };
+
+    try {
+      const res = await fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData)
+      });
+
+      if (res.ok) {
+        Swal.fire("✅ Success", "Registration Successful! Please Login.", "success");
+        document.getElementById("registerForm").reset();
+        toggleForms();
+      } else {
+        const msg = await res.text();
+        Swal.fire("❌ Failed", msg, "error");
+      }
+    } catch (err) {
+      Swal.fire("⚠️ Error", "Something went wrong!", "warning");
+    }
+  });
+
+  // Login Submit
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const loginData = {
+      userId: document.getElementById("loginUserId").value,
+      password: document.getElementById("loginPassword").value
+    };
+
+    try {
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(loginData)
+      });
+
+      if (res.ok) {
+        Swal.fire("✅ Success", "Login Successful!", "success");
+        window.location.href = "liveusers.html";
+      } else {
+        const msg = await res.text();
+        Swal.fire("❌ Failed", msg, "error");
+      }
+    } catch (err) {
+      Swal.fire("⚠️ Error", "Something went wrong!", "warning");
+    }
+  });
 </script>
 
 </body>
