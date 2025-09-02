@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Registered Users</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- SweetAlert2 Library -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background: #f9f9f9; }
+    h2 { color: #222; }
+    .user { 
+      border: 1px solid #ccc; 
+      padding: 10px; 
+      margin: 6px 0; 
+      cursor: pointer; 
+      border-radius: 6px;
+      background: #fff;
+      transition: 0.2s;
+    }
+    .user:hover { background: #f1f1f1; }
+    .online { color: green; font-weight: bold; margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h2>👥 Live Registered Users</h2>
+  <div id="usersList"></div>
+
+  <script>
+    const socket = io();
+    const usersDiv = document.getElementById("usersList");
+
+    // Load all users initially
+    async function loadUsers() {
+      const res = await fetch("/users");
+      const users = await res.json();
+
+      usersDiv.innerHTML = "";
+      users.forEach(user => {
+        const div = document.createElement("div");
+        div.classList.add("user");
+        div.innerHTML = `<span class="online">●</span> ${user.name || "N/A"} | ${user.email}`;
+        div.onclick = () => showUserDetails(user.email);
+        usersDiv.appendChild(div);
+      });
+    }
+
+    // Socket.io listener for new users
+    socket.on("newUser", (user) => {
+      loadUsers();
+    });
+
+    // Show user details in SweetAlert2 popup
+    async function showUserDetails(email) {
+      const res = await fetch(`/user/${email}`);
+      if (res.ok) {
+        const user = await res.json();
+        Swal.fire({
+          title: "📌 User Details",
+          html: `
+            <p><b>Name:</b> ${user.name || "N/A"}</p>
+            <p><b>Username:</b> ${user.username || "N/A"}</p>
+            <p><b>Email:</b> ${user.email || "N/A"}</p>
+            <p><b>Mobile:</b> ${user.mobile || "N/A"}</p>
+            <p><b>City:</b> ${user.city || "N/A"}</p>
+            <p><b>State:</b> ${user.state || "N/A"}</p>
+            <p><b>Country:</b> ${user.country || "N/A"}</p>
+            <p><b>User ID:</b> ${user.userId || "N/A"}</p>
+            <p><b>Registered On:</b> ${user.createdAt ? new Date(user.createdAt).toLocaleString() : "N/A"}</p>
+          `,
+          icon: "info",
+          confirmButtonText: "OK",
+          confirmButtonColor: "#3085d6",
+          width: "450px"
+        });
+      } else {
+        Swal.fire("❌ User not found!", "", "error");
+      }
+    }
+
+    loadUsers();
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Registered Users</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { text-align: center; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 10px; border-bottom: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <h2>📌 Live Registered Users</h2>
+  <ul id="usersList"></ul>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    async function loadUsers() {
+      const res = await fetch("/api/users");
+      const users = await res.json();
+      renderUsers(users);
+    }
+
+    function renderUsers(users) {
+      const list = document.getElementById("usersList");
+      list.innerHTML = "";
+      users.forEach(u => {
+        const li = document.createElement("li");
+        li.textContent = `${u.firstName} ${u.lastName} | ${u.email} | ${u.mobile} | ${u.address.city}, ${u.address.state}`;
+        list.appendChild(li);
+      });
+    }
+
+    // Load initially
+    loadUsers();
+
+    // Real-time update
+    socket.on("newUser", (user) => {
+      loadUsers();
+    });
+  </script>
+</body>
+</html>
